@@ -76,7 +76,6 @@ func main() {
     consumerindex := t.Format("2006-01-02T15:04:05.999999-07:00")
     consumergroupnamebase := os.Getenv("CONSUMER_GROUP_NAME")
     consumergroupname := consumergroupnamebase + "-" + consumerindex
-    fmt.Println(consumergroupname)
     conn, err = net.Dial("tcp", os.Getenv("INFLUX"))
     if err != nil {
         fmt.Println("dial error:", err)
