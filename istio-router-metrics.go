@@ -39,7 +39,7 @@ var err error
 var debugnosend bool
 var debugoutput bool
 var sendfwdtlsversion bool
-
+var Blacklist []string
 func main() {
 	envdebugnosend := os.Getenv("DEBUG_NO_SEND")
 	if envdebugnosend == "" {
@@ -70,6 +70,10 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+        blacklist_string := os.Getenv("SPACE_BLACKLIST")
+        Blacklist = strings.Split(blacklist_string,",")
+        fmt.Printf("Space Blacklist: %+v\n", Blacklist)
 
 	t := time.Now()
 	consumerindex := t.Format("2006-01-02T15:04:05.999999-07:00")
@@ -173,18 +177,34 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	return nil
 }
 
+func contains(s []string, e string) bool {
+    for _, a := range s {
+        if a == e {
+            return true
+        }
+    }
+    return false
+}
+
 func sock(logline []byte, timestamp time.Time) {
 	var l IstioAccessLog
 	err := json.Unmarshal(logline, &l)
 	if err != nil {
 		fmt.Println(err)
 	}
-	var tags string
-	tags = "fqdn=" + l.Host
-	send("router.service.ms", tags, fixTimeValue(l.Service), timestamp)
-	send("router.total.ms", tags, fixTimeValue(l.Total), timestamp)
-	send("router.status."+strconv.Itoa(l.Status), tags, "1", timestamp)
-	send("router.requests.count", tags, "1", timestamp)
+        if ! (contains(Blacklist, l.Space)) {
+	   var tags string
+	   tags = "fqdn=" + l.Host
+	   send("router.service.ms", tags, fixTimeValue(l.Service), timestamp)
+	   send("router.total.ms", tags, fixTimeValue(l.Total), timestamp)
+	   send("router.status."+strconv.Itoa(l.Status), tags, "1", timestamp)
+	   send("router.requests.count", tags, "1", timestamp)
+        }else{
+            if debugoutput {
+                fmt.Printf("BLACKLISTED/NOT SENDING %+v\n", string(logline))
+            }
+        }
+
 }
 
 func send(measurement string, tags string, value string, timestamp time.Time) {
