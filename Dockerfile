@@ -7,7 +7,7 @@ WORKDIR /go/src/istio-router-metrics
 ADD . .
 RUN chmod +x ./build.sh
 RUN ./build.sh
-CMD ["/go/src/router-metrics/istio-router-metrics"]
+CMD ["/go/src/istio-router-metrics/istio-router-metrics"]
 
 
 
