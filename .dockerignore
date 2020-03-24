@@ -2,7 +2,7 @@ debug.env
 debug.sh
 debugds2.env
 exports.sh
+env.env
 istio-router-metrics
 maru.sh
-maru.env
 
